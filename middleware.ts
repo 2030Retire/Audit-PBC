@@ -1,125 +1,64 @@
 /**
  * Next.js Middleware
- * Handles authentication, session validation, and routing
- * Uses @supabase/ssr for server-side auth
+ * Lightweight cookie-based routing — no Supabase client in Edge Runtime.
+ * Actual auth validation happens in individual route handlers via getSession().
  */
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+// Supabase stores the session in a cookie named sb-<project-ref>-auth-token
+const PROJECT_REF = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname.split('.')[0]
+  : ''
 
-  // Env var guard — fail open so the site is reachable even if misconfigured
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('[middleware] Missing Supabase env vars')
-    return res
-  }
+function hasSession(req: NextRequest): boolean {
+  // Check both possible Supabase cookie names
+  const cookieName = `sb-${PROJECT_REF}-auth-token`
+  const legacyCookieName = `sb-${PROJECT_REF}-auth-token.0`
+  return (
+    req.cookies.has(cookieName) ||
+    req.cookies.has(legacyCookieName) ||
+    req.cookies.has('supabase-auth-token')
+  )
+}
 
-  let session = null
-  try {
-    // Create Supabase client for middleware
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll: () => req.cookies.getAll(),
-          setAll: (cookiesToSet) => {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              res.cookies.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
-
-    // Get session
-    const { data } = await supabase.auth.getSession()
-    session = data.session
-  } catch (err) {
-    console.error('[middleware] Supabase session error:', err)
-    // Fail open — let route handlers deal with auth
-    return res
-  }
-
+export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
+  const loggedIn = hasSession(req)
 
-  // Public routes - no auth required
-  const publicRoutes = ['/login', '/page', '/public']
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  // Public routes — no auth required
+  const publicPaths = ['/login', '/api/auth', '/api/setup-admin', '/public']
+  const isPublic = publicPaths.some(p => pathname.startsWith(p))
 
-  if (isPublicRoute) {
-    // If logged in and visiting login, redirect to appropriate dashboard
-    if (session) {
-      const userRole = session.user?.user_metadata?.role || 'client'
-      const firmId = session.user?.user_metadata?.firm_id
-
-      if (pathname === '/login') {
-        if (userRole === 'platform_admin') {
-          return NextResponse.redirect(new URL('/platform', req.url))
-        } else if (userRole === 'firm_admin' || userRole === 'firm_staff') {
-          return NextResponse.redirect(new URL('/admin', req.url))
-        } else if (userRole === 'client') {
-          return NextResponse.redirect(
-            new URL(`/portal/${firmId}`, req.url)
-          )
-        }
-      }
+  // Static / Next.js internals are excluded via config.matcher below
+  if (isPublic) {
+    // If already logged in, redirect away from /login
+    if (loggedIn && pathname === '/login') {
+      return NextResponse.redirect(new URL('/admin', req.url))
     }
-
-    return res
+    return NextResponse.next()
   }
 
-  // Protected routes - auth required
-  if (!session) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  // Root — redirect based on login state
+  if (pathname === '/') {
+    return NextResponse.redirect(
+      new URL(loggedIn ? '/admin' : '/login', req.url)
+    )
   }
 
-  // Route-based access control
-  const userRole = session.user?.user_metadata?.role || 'client'
-  const firmId = session.user?.user_metadata?.firm_id
-
-  // Platform routes - platform_admin only
-  if (pathname.startsWith('/platform')) {
-    if (userRole !== 'platform_admin') {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
+  // Protected — require session cookie
+  if (!loggedIn) {
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('next', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
-  // Admin routes - firm_admin or firm_staff
-  if (pathname.startsWith('/admin')) {
-    if (!['firm_admin', 'firm_staff'].includes(userRole)) {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
-  }
-
-  // Portal routes - client_user
-  if (pathname.startsWith('/portal')) {
-    if (userRole !== 'client') {
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
-  }
-
-  // API routes - authorization happens in individual route handlers
-  // Middleware just ensures session exists for /api routes
-  if (pathname.startsWith('/api')) {
-    // Session is attached to request headers for API handlers
-    // Handlers will validate firm_id and role
-  }
-
-  return res
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-} 
+}
