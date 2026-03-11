@@ -1,0 +1,79 @@
+# NEW FILES CREATED IN REBUILD (March 10, 2026)
+
+## Library - Database Layer
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/db/types.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/db/client.ts
+
+## Library - Authentication
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/auth/session.ts
+
+## Library - Graph Integration
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/graph/StorageConfigResolver.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/graph/GraphClientFactory.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/graph/SharePointPathBuilder.ts
+
+## Library - File Management
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/policies/FileNamingPolicy.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/storage/UploadSessionService.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/storage/FileUploadOrchestrator.ts
+
+## Library - Provisioning
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/provisioning/ProvisioningOrchestrator.ts
+
+## Library - Utilities
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/utils/encryption.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/lib/utils/auditLogger.ts
+
+## Services - Business Logic
+/sessions/keen-laughing-shannon/mnt/audit-pbc/services/firms/FirmService.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/services/companies/CompanyService.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/services/engagements/EngagementService.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/services/request-items/RequestItemService.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/services/files/FileService.ts
+
+## API Routes - Auth
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/auth/login/route.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/auth/logout/route.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/auth/session/route.ts
+
+## API Routes - Platform Admin
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/platform/firms/route.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/platform/firms/[firmId]/route.ts
+
+## API Routes - Firm Admin
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/admin/companies/route.ts
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/admin/engagements/route.ts
+
+## API Routes - Client Portal
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/api/portal/requests/route.ts
+
+## UI Pages - Platform Admin
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/platform/layout.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/platform/page.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/platform/firms/page.tsx
+
+## UI Pages - Firm Admin
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/layout.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/page.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/companies/page.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/engagements/page.tsx
+
+## UI Pages - Client Portal
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/portal/layout.tsx
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/portal/page.tsx
+
+## Database & Configuration
+/sessions/keen-laughing-shannon/mnt/audit-pbc/supabase/migrations/001_initial_schema.sql
+
+## Documentation
+/sessions/keen-laughing-shannon/mnt/audit-pbc/REBUILD_SUMMARY.md
+
+## Modified Files
+/sessions/keen-laughing-shannon/mnt/audit-pbc/middleware.ts (complete rewrite)
+/sessions/keen-laughing-shannon/mnt/audit-pbc/.env.local (added new variables)
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/page.tsx (complete rewrite)
+/sessions/keen-laughing-shannon/mnt/audit-pbc/app/admin/companies/page.tsx (complete rewrite)
+
+TOTAL: 37 NEW FILES + 4 MODIFIED FILES = 41 FILES
+
+All files have complete, production-ready implementations (no stubs).
