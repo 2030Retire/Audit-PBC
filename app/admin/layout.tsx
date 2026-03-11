@@ -1,30 +1,19 @@
-'use client'
-
 import React from 'react'
-import Link from 'next/link'
-import LogoutButton from '@/components/common/LogoutButton'
+import { requireRole } from '@/lib/supabase/server'
+import AdminNav from '@/components/nav/AdminNav'
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // 인증 + 역할 확인 — 실패 시 /login 으로 자동 리다이렉트
+  const user = await requireRole(['firm_admin', 'firm_staff', 'platform_admin'])
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-900">Audit PBC — Firm Admin</h1>
-            <nav className="flex items-center gap-6">
-              <Link href="/admin" className="text-blue-600 hover:text-blue-800 text-sm">대시보드</Link>
-              <Link href="/admin/companies" className="text-blue-600 hover:text-blue-800 text-sm">고객사</Link>
-              <Link href="/admin/engagements" className="text-blue-600 hover:text-blue-800 text-sm">감사</Link>
-              <Link href="/admin/templates" className="text-blue-600 hover:text-blue-800 text-sm">템플릿</Link>
-              <Link href="/admin/pbc-codes" className="text-blue-600 hover:text-blue-800 text-sm">PBC 코드</Link>
-              <Link href="/admin/settings" className="text-blue-600 hover:text-blue-800 text-sm">설정</Link>
-              <Link href="/admin/users" className="text-blue-600 hover:text-blue-800 text-sm">사용자</Link>
-              <LogoutButton />
-            </nav>
-          </div>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+      <AdminNav
+        displayName={user.user_metadata?.display_name || user.email}
+      />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
     </div>
   )
 }
