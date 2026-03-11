@@ -11,26 +11,38 @@ import { createServerClient } from '@supabase/ssr'
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
 
-  // Create Supabase client for middleware
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => req.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            res.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  // Env var guard — fail open so the site is reachable even if misconfigured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error('[middleware] Missing Supabase env vars')
+    return res
+  }
 
-  // Get session
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  let session = null
+  try {
+    // Create Supabase client for middleware
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll: () => req.cookies.getAll(),
+          setAll: (cookiesToSet) => {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              res.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
+
+    // Get session
+    const { data } = await supabase.auth.getSession()
+    session = data.session
+  } catch (err) {
+    console.error('[middleware] Supabase session error:', err)
+    // Fail open — let route handlers deal with auth
+    return res
+  }
 
   const pathname = req.nextUrl.pathname
 
