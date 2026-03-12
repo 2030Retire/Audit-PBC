@@ -57,6 +57,22 @@ export async function POST(
       )
     }
 
+    // Get engagement to resolve company_id
+    const { data: engagementRow, error: engError } = await db
+      .from('engagements')
+      .select('company_id')
+      .eq('firm_id', session!.firm_id)
+      .eq('engagement_id', requestItem.engagement_id)
+      .maybeSingle()
+
+    if (engError || !engagementRow) {
+      return NextResponse.json(
+        { success: false, error: { code: 'NOT_FOUND', message: '감사 정보를 찾을 수 없습니다' } },
+        { status: 404 }
+      )
+    }
+    const companyId: string = engagementRow.company_id
+
     // Upload to Supabase Storage
     const fileId = crypto.randomUUID()
     const ext = file.name.includes('.') ? file.name.split('.').pop()! : ''
@@ -86,7 +102,7 @@ export async function POST(
       'request_item_files',
       session!.firm_id,
       {
-        company_id: requestItem.engagement_id, // will fix via join; use engagement_id as proxy
+        company_id: companyId,
         engagement_id: requestItem.engagement_id,
         request_item_id: requestItemId,
         original_filename: file.name,
