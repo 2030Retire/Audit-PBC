@@ -207,7 +207,7 @@ export interface RequestItemFile {
   stored_filename_template: string
   stored_filename: string
   storage_relative_path: string
-  storage_provider_type: 'M365_SHAREPOINT'
+  storage_provider_type: 'M365_SHAREPOINT' | 'SUPABASE_STORAGE'
   sharepoint_site_id: string | null
   sharepoint_drive_id: string | null
   sharepoint_item_id: string | null

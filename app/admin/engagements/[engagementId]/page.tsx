@@ -417,10 +417,14 @@ export default function EngagementDetailPage() {
                 {requestItems.map((item) => {
                   const badge = getStatusBadge(item.item_status)
                   return (
-                    <tr key={item.request_item_id} className="hover:bg-gray-50">
+                    <tr
+                      key={item.request_item_id}
+                      className="hover:bg-blue-50 cursor-pointer"
+                      onClick={() => window.location.href = `/admin/engagements/${engagementId}/request-items/${item.request_item_id}`}
+                    >
                       <td className="px-4 py-3 font-mono text-xs text-gray-500">{item.doc_no}</td>
                       <td className="px-4 py-3">
-                        <div className="font-medium">{item.item_title}</div>
+                        <div className="font-medium text-blue-700">{item.item_title}</div>
                         {item.item_description && (
                           <div className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{item.item_description}</div>
                         )}
