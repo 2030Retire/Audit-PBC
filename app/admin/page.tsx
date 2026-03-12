@@ -1,63 +1,80 @@
 /**
- * Firm Admin Dashboard
+ * Firm Admin Dashboard — Server Component
  * /admin
  */
 
-'use client'
-
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
+import { requireRole } from '@/lib/supabase/server'
+import { getSupabaseClient } from '@/lib/db/client'
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalCompanies: 0,
-    activeEngagements: 0,
-    pendingRequests: 0,
-  })
+export default async function AdminDashboard() {
+  const user = await requireRole(['firm_admin', 'firm_staff', 'platform_admin'])
+  const firm_id: string = user.user_metadata?.firm_id ?? ''
 
-  useEffect(() => {
-    // TODO: Fetch stats from API
-  }, [])
+  const supabase = await getSupabaseClient()
+
+  const [companiesRes, engagementsRes, requestsRes] = await Promise.all([
+    supabase
+      .from('companies')
+      .select('company_id', { count: 'exact', head: true })
+      .eq('firm_id', firm_id)
+      .eq('status', 'ACTIVE'),
+    supabase
+      .from('engagements')
+      .select('engagement_id', { count: 'exact', head: true })
+      .eq('firm_id', firm_id)
+      .eq('engagement_status', 'OPEN'),
+    supabase
+      .from('request_items')
+      .select('request_item_id', { count: 'exact', head: true })
+      .eq('firm_id', firm_id)
+      .eq('item_status', 'REQUESTED'),
+  ])
+
+  const totalCompanies = companiesRes.count ?? 0
+  const activeEngagements = engagementsRes.count ?? 0
+  const pendingRequests = requestsRes.count ?? 0
+
+  const stats = [
+    { label: '고객사', value: totalCompanies, href: '/admin/companies', color: 'text-blue-600' },
+    { label: '진행 중인 감사', value: activeEngagements, href: '/admin/engagements', color: 'text-green-600' },
+    { label: '미제출 요청 항목', value: pendingRequests, href: '/admin/engagements', color: 'text-orange-500' },
+  ]
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-6">Admin Dashboard</h2>
+      <h2 className="text-xl font-bold mb-6">대시보드</h2>
 
-      {/* Stats Grid */}
+      {/* 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium">Total Companies</h3>
-          <p className="text-3xl font-bold mt-2">{stats.totalCompanies}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium">
-            Active Engagements
-          </h3>
-          <p className="text-3xl font-bold mt-2">{stats.activeEngagements}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-600 text-sm font-medium">
-            Pending Requests
-          </h3>
-          <p className="text-3xl font-bold mt-2">{stats.pendingRequests}</p>
-        </div>
+        {stats.map((s) => (
+          <Link key={s.label} href={s.href} className="block">
+            <div className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+              <h3 className="text-gray-500 text-sm font-medium">{s.label}</h3>
+              <p className={`text-4xl font-bold mt-2 text-right ${s.color}`}>
+                {s.value.toLocaleString('ko-KR')}
+              </p>
+            </div>
+          </Link>
+        ))}
       </div>
 
-      {/* Quick Actions */}
+      {/* 바로가기 */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-        <div className="flex gap-4">
-          <Link
-            href="/admin/companies"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            View Companies
+        <h3 className="text-base font-bold mb-4 text-gray-800">바로가기</h3>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/admin/companies" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            고객사 관리
           </Link>
-          <Link
-            href="/admin/engagements"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            View Engagements
+          <Link href="/admin/engagements" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            감사 관리
+          </Link>
+          <Link href="/admin/templates" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            템플릿
+          </Link>
+          <Link href="/admin/pbc-codes" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            PBC 코드
           </Link>
         </div>
       </div>
