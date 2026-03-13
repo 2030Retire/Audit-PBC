@@ -16,6 +16,7 @@ export type UserRole =
 export interface AppSession {
   user_id: string
   firm_id: string
+  company_id: string | null  // 클라이언트 사용자의 소속 고객사 (firm_admin/firm_staff는 null)
   role: UserRole
   email: string
   display_name: string
@@ -46,10 +47,12 @@ export async function getSession(
 
     const role = (user.user_metadata?.role || 'client') as UserRole
     const firm_id = user.user_metadata?.firm_id || ''
+    const company_id = user.user_metadata?.company_id || null
 
     return {
       user_id: user.id,
       firm_id,
+      company_id,
       role,
       email: user.email || '',
       display_name: user.user_metadata?.display_name || user.email || '',

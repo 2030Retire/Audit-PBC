@@ -111,6 +111,7 @@ export interface Company {
 export interface AppUser {
   user_id: string
   firm_id: string
+  company_id: string | null
   email: string
   display_name: string
   user_type: 'PLATFORM_ADMIN' | 'FIRM_ADMIN' | 'FIRM_STAFF' | 'CLIENT_USER'

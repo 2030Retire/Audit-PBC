@@ -162,12 +162,14 @@ export default function CompaniesPage() {
                     {new Date(company.created_at).toLocaleDateString('ko-KR')}
                   </td>
                   <td className="px-6 py-4">
-                    <Link
-                      href={`/admin/companies/${company.company_id}`}
-                      className="text-blue-600 hover:underline text-xs"
-                    >
-                      상세보기
-                    </Link>
+                    <div className="flex gap-3">
+                      <Link
+                        href={`/admin/companies/${company.company_id}/users`}
+                        className="text-blue-600 hover:underline text-xs font-medium"
+                      >
+                        담당자 관리
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
